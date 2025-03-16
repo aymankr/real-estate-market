@@ -1,0 +1,5 @@
+.tools-version
+.venv/
+.mypy_cache/
+immo-viz-api/__pycache__/
+Dockerfile

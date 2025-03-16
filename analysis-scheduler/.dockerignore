@@ -1,0 +1,5 @@
+.tools-version
+.venv/
+.mypy_cache/
+immoscraper/__pycache__/
+Dockerfile

@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "immo-viz-api"
+version = "0.1.0"
+description = "API to control how the immo-viz db is used."
+authors = ["Alexandre Sparton"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "3.12.2"
+fastapi = {extras = ["standard"], version = "^0.114.1"}
+uvicorn = {extras = ["standard"], version = "^0.30.6"}
+sqlalchemy = "^2.0.34"
+psycopg2 = "^2.9.9"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.11.2"
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
