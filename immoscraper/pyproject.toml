@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "immo-scraper"
+version = "0.1.0"
+description = "Real estate data scraper tool"
+authors = ["Alexandre Sparton"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "3.12.2"
+Scrapy = "^2.11.2"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.11.2"
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

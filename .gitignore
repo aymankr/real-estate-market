@@ -1,0 +1,17 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+.mypy_cache/
+.venv/
+
+
+# Volumes
+.immo-viz-db/
+.grafana_storage/
+
+# Kafka
+kafka_*
+# But keep the report script
+!kafka_report.py
