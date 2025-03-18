@@ -8,7 +8,7 @@ services:
             MONGO_INITDB_ROOT_PASSWORD: ${FETCH_DB_MONGO_PASSWORD}
             MONGO_INITDB_DATABASE: ${FETCH_DB_MONGO_DB}
         volumes:
-            - immo-fetch-db:/data/db
+            - .immo-fetch-db:/data/db
         networks:
             - app-tier
 
@@ -28,7 +28,7 @@ services:
             POSTGRES_PASSWORD: ${IMMO_VIZ_DB_POSTGRES_PASSWORD}
             POSTGRES_DB: ${IMMO_VIZ_DB_POSTGRES_DB}
         volumes:
-            - immo-viz-db:/var/lib/postgresql/data
+            - .immo-viz-db:/var/lib/postgresql/data
         networks:
             - app-tier
     
@@ -48,7 +48,7 @@ services:
             POSTGRES_PASSWORD: ${IMMO_MONITORING_DB_POSTGRES_PASSWORD}
             POSTGRES_DB: ${IMMO_MONITORING_DB_POSTGRES_DB}
         volumes:
-            - immo-monitoring-db:/var/lib/postgresql/data
+            - .immo-monitoring-db:/var/lib/postgresql/data
         networks:
             - app-tier
 
@@ -151,8 +151,8 @@ services:
             context: ./immo-viz-api/
             dockerfile: Dockerfile
         environment:
-            IMMO_VIZ_DATABASE_URL: postgresql://${IMMO_VIZ_DB_POSTGRES_USER}:${IMMO_VIZ_DB_POSTGRES_PASSWORD}@immo-viz-db:5432/${IMMO_VIZ_DB_POSTGRES_DB}
-            IMMO_MONITORING_DATABASE_URL: postgresql://${IMMO_MONITORING_DB_POSTGRES_USER}:${IMMO_MONITORING_DB_POSTGRES_PASSWORD}@immo-viz-db:5432/${IMMO_MONITORING_DB_POSTGRES_DB}
+            VIZ_DATABASE_URL: postgresql://${IMMO_VIZ_DB_POSTGRES_USER}:${IMMO_VIZ_DB_POSTGRES_PASSWORD}@immo-viz-db:5432/${IMMO_VIZ_DB_POSTGRES_DB}
+            MONITORING_DATABASE_URL: postgresql://${IMMO_MONITORING_DB_POSTGRES_USER}:${IMMO_MONITORING_DB_POSTGRES_PASSWORD}@immo-monitoring-db:5432/${IMMO_MONITORING_DB_POSTGRES_DB}
         develop:
             watch:
                 - action: sync
