@@ -118,3 +118,15 @@ class FetchingReport(MonitoringBase):
     duration_in_seconds = Column(Float, nullable=False)
     item_processed_count = Column(Integer, nullable=False)
     inserted_at = Column(DateTime, nullable=False)
+
+
+class SchedulingReport(MonitoringBase):
+    __tablename__ = "scheduling_reports"
+    
+    id = Column(Integer, primary_key=True, nullable=False)
+    success = Column(Boolean, nullable=False)
+    started_at = Column(DateTime, nullable=False)
+    ended_at = Column(DateTime, nullable=False)
+    duration_in_seconds = Column(Float, nullable=False)
+    scheduled_ads_count = Column(Integer, nullable=False)
+    inserted_at = Column(DateTime, nullable=False)
