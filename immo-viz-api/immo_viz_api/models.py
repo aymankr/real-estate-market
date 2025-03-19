@@ -1,8 +1,8 @@
 from enum import Enum
 from sqlalchemy import Column, Integer, Float, String, Boolean, CHAR, DateTime
-from immo_viz_api.database import VizBase
+from immo_viz_api.database import VizBase, MonitoringBase
 
-
+# --- Viz database models --- #
 class Region(VizBase):
     __tablename__ = "regions"
 
@@ -96,4 +96,25 @@ class PropertyAd(VizBase):
     latitude = Column(Float, nullable=True)
     energy_consumption = Column(CHAR, nullable=True)
     ges = Column(CHAR, nullable=True)
+    inserted_at = Column(DateTime, nullable=False)
+
+
+# --- Monitoring database models --- #
+class FetchType(int, Enum):
+    SCRAP = 1
+    API = 2
+    XML = 3
+
+
+class FetchingReport(MonitoringBase):
+    __tablename__ = "fetching_reports"
+    
+    id = Column(Integer, primary_key=True, nullable=False)
+    source_name = Column(String, nullable=False)
+    fetch_type = Column(Integer, nullable=False)
+    success = Column(Boolean, nullable=False)
+    started_at = Column(DateTime, nullable=False)
+    ended_at = Column(DateTime, nullable=False)
+    duration_in_seconds = Column(Float, nullable=False)
+    item_processed_count = Column(Integer, nullable=False)
     inserted_at = Column(DateTime, nullable=False)
