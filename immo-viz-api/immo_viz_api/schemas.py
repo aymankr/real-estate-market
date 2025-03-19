@@ -1,5 +1,7 @@
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
+from immo_viz_api.models import BuildingType, EnergyConsumption, GES
 
 
 class RegionCreate(BaseModel):
@@ -41,5 +43,25 @@ class CityCreate(BaseModel):
 
 
 class CityResponse(CityCreate):
+    class Config:
+        from_attributes = True
+
+
+class PropertyAdCreate(BaseModel):
+    building_type: BuildingType
+    is_rental: bool
+    price: float
+    area: float
+    publication_date: datetime
+    rooms_count: Optional[int] = None
+    longitude: Optional[float] = None
+    latitude: Optional[float] = None
+    energy_consumption: Optional[EnergyConsumption] = None
+    ges: Optional[GES] = None
+
+
+class PropertyAdResponse(PropertyAdCreate):
+    id: int
+
     class Config:
         from_attributes = True

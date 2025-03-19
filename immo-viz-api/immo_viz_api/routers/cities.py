@@ -17,7 +17,7 @@ router = APIRouter(prefix="/cities", tags=["City"])
 @router.post("/", response_model=CityResponse, status_code=status.HTTP_201_CREATED)
 def create_city(payload: CityCreate, db: Session = Depends(get_viz_db)):
     """Create a new city."""
-    logger.info("Creating a new city with message: %s", payload.message)
+    logger.info("Creating a new city with insee_code: %s", payload.insee_code)
     new_city = City(**payload.dict())
     db.add(new_city)
     db.commit()
