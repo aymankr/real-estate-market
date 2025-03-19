@@ -48,6 +48,7 @@ class CityResponse(CityCreate):
 
 
 class PropertyAdCreate(BaseModel):
+    city_insee_code: str
     building_type: BuildingType
     is_rental: bool
     price: float

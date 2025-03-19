@@ -85,6 +85,7 @@ class PropertyAd(VizBase):
     __tablename__ = "property_ads"
     
     id = Column(Integer, primary_key=True, nullable=False)
+    city_insee_code = Column(String, nullable=False)
     building_type = Column(Integer, nullable=False)
     is_rental = Column(Boolean, nullable=False)
     price = Column(Float, nullable=False)
