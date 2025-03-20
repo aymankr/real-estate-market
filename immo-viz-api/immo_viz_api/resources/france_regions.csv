@@ -1,0 +1,19 @@
+insee_code,name,area,population,capital_city_insee_code
+11,Île-de-France,12012.0,12419961,75101
+24,Centre-Val de Loire, 39151.0,2573295,45234
+27,Bourgogne-Franche-Comté, 47784.0,2791719,21231
+28,Normandie, 29907.0,3327077,76540
+32,Hauts-de-France, 31806.0,5983823,59350
+44,Grand Est, 57441.0,5568711,67482
+52,Pays de la Loire, 32082.0,3926389,44109
+53,Bretagne, 27208.0,3453023,35238
+75,Nouvelle-Aquitaine, 84036.0,6154772,33063
+76,Occitanie, 72724.0,6154729,31555
+84,Auvergne-Rhône-Alpes, 69711.0,8235923,69381
+93,Provence-Alpes-Côte d'Azur, 31400.0,5198011,13201
+94,Corse, 8680.0,355528,2A004
+1,Guadeloupe, 1628.0,378561,97105
+2,Martinique, 1128.0,349925,97209
+3,Guyane, 83534.0,295385,97302
+4,La Réunion, 2504.0,885700,97411
+6,Mayotte, 376.0,320901,97611

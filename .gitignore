@@ -10,7 +10,9 @@ __pycache__/
 node_modules/
 
 # Volumes
+.immo-fetch-db/
 .immo-viz-db/
+.immo-monitoring-db/
 .grafana_storage/
 
 # Kafka

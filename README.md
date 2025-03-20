@@ -2,7 +2,7 @@
 
 Real estate data fetcher and visualiser.
 
-## Getting Started - Scraper/API/Grafana
+## Getting Started
 
 ### Prerequisites
 
@@ -10,17 +10,17 @@ Real estate data fetcher and visualiser.
 
 2. Make sure that the rights on .grafana_storage folder are RW for the user running the docker-compose (To be sure do `chmod 777 -R .grafana_storage`)
 
-3. For prometheus and cAdvisor to recieve metrics from the docker daemon it is neccessary to configure docker <https://docs.docker.com/engine/daemon/prometheus/>.
-
 ### Running the project
 
-1. Execute `docker network create immo-viz-network`
+1. Run the command: `make up` or `make upd` to start the docker compose.
 
-2. Execute `docker-compose up` at the project root.
-
-This will start the fetchers, the API and the grafana server.
+2. If it's your first run, launch the `make seed` command to populate the viz-db with french cities, departments and regions.
 
 ### Accessing the services
+
+#### API
+
+- <http://localhost:8000/>
 
 #### Grafana
 
@@ -29,16 +29,3 @@ This will start the fetchers, the API and the grafana server.
 #### Adminer
 
 - To access the adminer go to `localhost:8080`, select `PostgreSQL` as the system and use the following credentials: `host: immo-viz-db` `user: root, password: root`
-
-#### Prometheus
-
-Analyzes resource usage from targets.
-
-- To access go to `localhost:9090`.
-- To see what targets are available `127.0.0.1:9090/targets` (to access a target's metrics from outisde the docker context, replace the host name with localhost.)
-
-#### cAdvisor
-
-Analyzes and exposes resource usage and performance data from running containers.
-
-- To access go to `localhost:8083/containers`
