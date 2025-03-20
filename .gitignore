@@ -13,7 +13,6 @@ node_modules/
 .immo-fetch-db/
 .immo-viz-db/
 .immo-monitoring-db/
-.grafana_storage/
 
 # Kafka
 kafka_*
