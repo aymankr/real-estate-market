@@ -14,7 +14,7 @@ WORKDIR /app
 COPY . .
 
 # Install project dependencies
-RUN poetry install
+RUN poetry install --without dev
 
 # Run the application
 CMD [ "poetry", "run", "python", "-m", "analysis_scheduler" ]

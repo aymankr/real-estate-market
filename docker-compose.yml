@@ -75,12 +75,15 @@ services:
             context: ./analysis-scheduler
             dockerfile: Dockerfile
         environment:
-            FETCH_DB_MONGO_URL: mongodb://${IMMO_FETCH_MONGO_USER}:${IMMO_FETCH_MONGO_PASSWORD}@immo-fetch-db:27017/${IMMO_FETCH_MONGO_DB_NAME}
-            KAFKA_HOST: ${KAFKA_HOST}
+            IMMO_FETCH_MONGO_URI: mongodb://${IMMO_FETCH_MONGO_USER}:${IMMO_FETCH_MONGO_PASSWORD}@immo-fetch-db:27017/
+            IMMO_FETCH_MONGO_DB_NAME: ${IMMO_FETCH_MONGO_DB_NAME}
+            IMMO_FETCH_MONGO_COLLECTION_NAME: ${IMMO_FETCH_MONGO_COLLECTION_NAME}
+            ANALYSIS_SCHEDULES_COLLECTION_NAME: ${ANALYSIS_SCHEDULES_COLLECTION_NAME}
             IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
+            KAFKA_HOST: ${KAFKA_HOST}
         depends_on:
+            - immo-fetch-db
             - immo-viz-api
-            - immo-monitoring-db
         networks:
             - app-tier
 
