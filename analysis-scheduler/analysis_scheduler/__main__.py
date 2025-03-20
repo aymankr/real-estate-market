@@ -13,12 +13,7 @@ from analysis_scheduler.services.scheduling_report_sender import send_scheduling
 from analysis_scheduler.services.stats_controller import StatsController
 
 
-def main():
-    # --- Start analysis scheduler --- #
-    stats_controller: StatsController = StatsController()
-    stats_controller.start()
-    print(f"--- Analysis scheduler started at {stats_controller.started_at} ---")
-
+def do_schedule(stats_controller: StatsController):
     # --- Get the sources to possibly schedule --- #
     print("Getting the sources to possibly schedule...")
     last_seen_per_source: list[tuple[str, datetime]] = (
@@ -55,18 +50,34 @@ def main():
             print(
                 f"{failed_analysis_launch} property ads analysis failed to schedule for source {source_id}."
             )
+
+        # --- Record the last schedule date for the source --- #
         AnalysisSchedulesDAO().insert_one(source_id)
 
-    # --- End analysis scheduler --- #
-    stats_controller.end()
-    print(f"--- Analysis scheduler ended at {stats_controller.ended_at} ---")
 
-    # --- Send analysis report to API --- #
-    report = stats_controller.to_report()
-    print(f"-- Analysis report:\n{report} --")
-    print("Sending analysis report to API...")
-    send_scheduling_report(report)
-    print("Analysis report sent to API")
+def main():
+    # --- Start analysis scheduler --- #
+    stats_controller: StatsController = StatsController()
+    stats_controller.start()
+    print(f"--- Analysis scheduler started at {stats_controller.started_at} ---")
+
+    # --- Do the scheduling --- #
+    try:
+        do_schedule(stats_controller)
+        stats_controller.success = True
+    except Exception:
+        stats_controller.success = False
+    finally:
+        # --- End analysis scheduler --- #
+        stats_controller.end()
+        print(f"--- Analysis scheduler ended at {stats_controller.ended_at} ---")
+
+        # --- Send analysis report to API --- #
+        report = stats_controller.to_report()
+        print(f"-- Analysis report:\n{report} --")
+        print("Sending analysis report to API...")
+        send_scheduling_report(report)
+        print("Analysis report sent to API")
 
 
 if __name__ == "__main__":

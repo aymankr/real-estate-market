@@ -11,6 +11,7 @@ class AnalysisSchedulingReport(TypedDict):
 
 
 class StatsController:
+    success: bool
     started_at: datetime
     ended_at: datetime
     scheduled_sources: dict[str, tuple[int, int]]
@@ -51,7 +52,7 @@ class StatsController:
     def to_report(self) -> AnalysisSchedulingReport:
         scheduled_ads_count = self.get_scheduled_ads_count()
         return {
-            "success": scheduled_ads_count > 0,
+            "success": self.success,
             "started_at": self.started_at,
             "ended_at": self.ended_at,
             "duration_in_seconds": (self.ended_at - self.started_at).total_seconds(),
