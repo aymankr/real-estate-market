@@ -4,13 +4,15 @@ services:
         image: mongo:5.0.3
         restart: always
         environment:
-            MONGO_INITDB_ROOT_USERNAME: ${FETCH_DB_MONGO_USER}
-            MONGO_INITDB_ROOT_PASSWORD: ${FETCH_DB_MONGO_PASSWORD}
-            MONGO_INITDB_DATABASE: ${FETCH_DB_MONGO_DB}
+            MONGO_INITDB_ROOT_USERNAME: ${IMMO_FETCH_MONGO_USER}
+            MONGO_INITDB_ROOT_PASSWORD: ${IMMO_FETCH_MONGO_PASSWORD}
+            MONGO_INITDB_DATABASE: ${IMMO_FETCH_MONGO_DB_NAME}
         volumes:
             - .immo-fetch-db:/data/db
         networks:
             - app-tier
+        ports:
+            - 27017:27017
 
     immo-viz-db:
         image: postgres:16.4
@@ -57,8 +59,11 @@ services:
             context: ./immoscraper
             dockerfile: Dockerfile
         environment:
-            FETCH_DB_MONGO_URL: mongodb://${FETCH_DB_MONGO_USER}:${FETCH_DB_MONGO_PASSWORD}@immo-fetch-db:27017/${FETCH_DB_MONGO_DB}
+            IMMO_FETCH_MONGO_URI: mongodb://${IMMO_FETCH_MONGO_USER}:${IMMO_FETCH_MONGO_PASSWORD}@immo-fetch-db:27017/
+            IMMO_FETCH_MONGO_DB_NAME: ${IMMO_FETCH_MONGO_DB_NAME}
+            IMMO_FETCH_MONGO_COLLECTION_NAME: ${IMMO_FETCH_MONGO_COLLECTION_NAME}
             IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
+            LOG_LEVEL: ${LOG_LEVEL}
         depends_on:
             - immo-fetch-db
             - immo-viz-api
@@ -70,7 +75,7 @@ services:
             context: ./analysis-scheduler
             dockerfile: Dockerfile
         environment:
-            FETCH_DB_MONGO_URL: mongodb://${FETCH_DB_MONGO_USER}:${FETCH_DB_MONGO_PASSWORD}@immo-fetch-db:27017/${FETCH_DB_MONGO_DB}
+            FETCH_DB_MONGO_URL: mongodb://${IMMO_FETCH_MONGO_USER}:${IMMO_FETCH_MONGO_PASSWORD}@immo-fetch-db:27017/${IMMO_FETCH_MONGO_DB_NAME}
             KAFKA_HOST: ${KAFKA_HOST}
             IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
         depends_on:
