@@ -35,6 +35,7 @@ class PropertyAdInserter(object):
         self.src_property_ads_collection = (
             MongoDBProvider().get_src_property_ads_collection()
         )
+        self.src_property_ads_collection.delete_many({"source_id": spider.name})
 
     def process_item(self, item: PropertyAdItem, spider: Spider):
         self.logger.info(f"Inserting item {item} into MongoDB")
