@@ -1,7 +1,10 @@
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
+from immo_viz_api.models import BuildingType, EnergyConsumption, GES
 
 
+# --- Viz database CRUD schemas --- #
 class RegionCreate(BaseModel):
     insee_code: str
     name: str
@@ -41,5 +44,46 @@ class CityCreate(BaseModel):
 
 
 class CityResponse(CityCreate):
+    class Config:
+        from_attributes = True
+
+
+class PropertyAdCreate(BaseModel):
+    city_insee_code: str
+    building_type: BuildingType
+    is_rental: bool
+    price: float
+    area: float
+    publication_date: datetime
+    rooms_count: Optional[int] = None
+    longitude: Optional[float] = None
+    latitude: Optional[float] = None
+    energy_consumption: Optional[EnergyConsumption] = None
+    ges: Optional[GES] = None
+
+
+class PropertyAdResponse(PropertyAdCreate):
+    id: int
+    inserted_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# --- Monitoring database CRUD schemas --- #
+class FetchingReportCreate(BaseModel):
+    source_name: str
+    fetch_type: int
+    success: bool
+    started_at: datetime
+    ended_at: datetime
+    duration_in_seconds: float
+    item_processed_count: int
+
+
+class FetchingReportResponse(FetchingReportCreate):
+    id: int
+    inserted_at: datetime
+
     class Config:
         from_attributes = True

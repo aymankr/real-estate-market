@@ -17,7 +17,7 @@ router = APIRouter(prefix="/regions", tags=["Regions"])
 @router.post("/", response_model=RegionResponse, status_code=status.HTTP_201_CREATED)
 def create_region(payload: RegionCreate, db: Session = Depends(get_viz_db)):
     """Create a new region."""
-    logger.info("Creating a new region with message: %s", payload.message)
+    logger.info("Creating a new region with insee_code: %s", payload.insee_code)
     new_region = Region(**payload.dict())
     db.add(new_region)
     db.commit()

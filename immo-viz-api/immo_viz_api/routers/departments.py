@@ -19,7 +19,7 @@ router = APIRouter(prefix="/departments", tags=["Department"])
 )
 def create_department(payload: DepartmentCreate, db: Session = Depends(get_viz_db)):
     """Create a new department."""
-    logger.info("Creating a new department with message: %s", payload.message)
+    logger.info("Creating a new department with insee_code: %s", payload.insee_code)
     new_department = Department(**payload.dict())
     db.add(new_department)
     db.commit()
