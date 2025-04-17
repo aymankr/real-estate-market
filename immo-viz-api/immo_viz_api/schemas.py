@@ -87,3 +87,19 @@ class FetchingReportResponse(FetchingReportCreate):
 
     class Config:
         from_attributes = True
+
+
+class SchedulingReportCreate(BaseModel):
+    success: bool
+    started_at: datetime
+    ended_at: datetime
+    duration_in_seconds: float
+    scheduled_ads_count: int
+
+
+class SchedulingReportResponse(SchedulingReportCreate):
+    id: int
+    inserted_at: datetime
+
+    class Config:
+        from_attributes = True
