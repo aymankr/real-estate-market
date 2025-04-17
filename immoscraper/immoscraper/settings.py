@@ -1,4 +1,3 @@
-# Scrapy settings for immoscraper project
 import os
 from dotenv import load_dotenv
 

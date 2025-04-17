@@ -29,5 +29,5 @@ logs: docker-compose.yml .env	# Show the logs of the docker compose
 
 seed: docker-compose.yml .env	# Seed the database
 	echo "Seeding the database..."
-	docker exec -it immo-viz-dat902-immo-viz-api-1 poetry run python -m immo_viz_api.seeder
+	docker exec -it t-dat-902-bdx_8-immo-viz-api-1 poetry run python -m immo_viz_api.seeder
 	echo "Seeding done."
