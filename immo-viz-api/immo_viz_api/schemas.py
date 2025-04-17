@@ -103,3 +103,20 @@ class SchedulingReportResponse(SchedulingReportCreate):
 
     class Config:
         from_attributes = True
+
+
+class AnalysisReportCreate(BaseModel):
+    success: bool
+    started_at: datetime
+    ended_at: datetime
+    duration_in_seconds: float
+    accepted: bool
+    discard_reason: Optional[str] = None
+
+
+class AnalysisReportResponse(AnalysisReportCreate):
+    id: int
+    inserted_at: datetime
+
+    class Config:
+        from_attributes = True

@@ -130,3 +130,16 @@ class SchedulingReport(MonitoringBase):
     duration_in_seconds = Column(Float, nullable=False)
     scheduled_ads_count = Column(Integer, nullable=False)
     inserted_at = Column(DateTime, nullable=False)
+
+
+class AnalysisReport(MonitoringBase):
+    __tablename__ = "analysis_reports"
+    
+    id = Column(Integer, primary_key=True, nullable=False)
+    success = Column(Boolean, nullable=False)
+    started_at = Column(DateTime, nullable=False)
+    ended_at = Column(DateTime, nullable=False)
+    duration_in_seconds = Column(Float, nullable=False)
+    accepted = Column(Boolean, nullable=False)
+    discard_reason = Column(String, nullable=True)
+    inserted_at = Column(DateTime, nullable=False)
