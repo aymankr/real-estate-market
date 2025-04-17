@@ -65,23 +65,23 @@ class PropertyAdInserter(object):
             )
             
             # Insert to MongoDB
-            self.src_property_ads_collection.insert_one(
-                SourcePropertyAdMongo(
-                    source_id=spider.name,
-                    building_type=item["building_type"],
-                    is_rent=item["is_rent"],
-                    price=item["price"],
-                    area=item["area"],
-                    latitutde=item["latitutde"],
-                    longitude=item["longitude"],
-                    rooms_count=item["rooms_count"],
-                    energy_consumption=item["energy_consumption"],
-                    ges=item["ges"],
-                    city_insee_code=item["city_insee_code"],
-                    publication_date=item["publication_date"],
-                    last_seen=datetime.now(),
-                )
-            )
+            self.src_property_ads_collection.insert_one({
+                "source_id": spider.name,
+                "property_ad_data": {
+                    "building_type": item["building_type"].name,
+                    "is_rent": item["is_rent"],
+                    "price": item["price"],
+                    "area": item["area"],
+                    "latitude": item["latitutde"],
+                    "longitude": item["longitude"],
+                    "rooms_count": item["rooms_count"],
+                    "energy_consumption": item["energy_consumption"].value if item["energy_consumption"] else None,
+                    "ges": item["ges"].value if item["ges"] else None,
+                    "city_insee_code": item["city_insee_code"],
+                    "publication_date": item["publication_date"],
+                },
+                "last_seen": datetime.now()
+            })
             self.logger.info(f"Successfully stored item {property_id} in MongoDB")
         except Exception as e:
             self.logger.error(f"Failed to store item {property_id}: {str(e)}")
