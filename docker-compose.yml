@@ -64,6 +64,8 @@ services:
             IMMO_FETCH_MONGO_COLLECTION_NAME: ${IMMO_FETCH_MONGO_COLLECTION_NAME}
             IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
             LOG_LEVEL: ${LOG_LEVEL}
+            SCRAPS: ${SCRAPS}       # List of spiders to launch
+            SCRAPS_RUN_TIMES: ${SCRAPS_RUN_TIMES}    # List of times (HH:MM)
         depends_on:
             - immo-fetch-db
             - immo-viz-api
@@ -81,6 +83,7 @@ services:
             ANALYSIS_SCHEDULES_COLLECTION_NAME: ${ANALYSIS_SCHEDULES_COLLECTION_NAME}
             IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
             KAFKA_HOST: ${KAFKA_HOST}
+            START_SCHEDULER_INTERVAL: ${START_CHEDULER_INTERVAL}  # Launch interval in seconds
         depends_on:
             - immo-fetch-db
             - immo-viz-api
