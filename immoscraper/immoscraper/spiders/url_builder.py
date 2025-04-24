@@ -5,34 +5,37 @@ class BienIciUrlBuilder:
     """Build URLs for BienIci scraper"""
     
     @staticmethod
-    def build_search_url(filter_type, building_types, page_size=24):
-        """Build the base search URL for BienIci scraper with filters"""
-        base_url = "https://www.bienici.com/realEstateAds.json"
-        
+    def _build_filters(filter_type, building_types, page_number, page_size, start_index):
+        """Build filters for the search"""
         filters = {
-            'size': page_size,
-            'from': 0,
-            'showAllModels': False,
-            'filterType': filter_type,
-            'propertyType': building_types,
-            'page': 1,
-            'sortBy': "relevance",
-            'sortOrder': "desc",
+            'size': page_size, # number of ads per page
+            'from': start_index, # offset (ex: 0, 24, 48...)
+            'filterType': filter_type, # property type filter (buy or rent)
+            'propertyType': building_types, # list of building types (house, flat, loft, castle, townhouse, etc.)
+            'page': page_number, # page number
+            'sortBy': "relevance", # sort by relevance
+            'sortOrder': "desc", # sort order
             'onTheMarket': [True]
         }
         
         # Remove None values
-        filters = {k: v for k, v in filters.items() if v is not None}
-        
-        filters_json = json.dumps(filters)
-        filters_param = urllib.parse.quote(filters_json)
-        
-        return f"{base_url}?filters={filters_param}&extensionType=extendedIfNoResult&enableGoogleStructuredDataAggregates=true&leadingCount=2"
+        return {k: v for k, v in filters.items() if v is not None}
     
     @staticmethod
-    def build_pagination_url(base_url, start_index):
-        """Update base URL with new start index for pagination"""
-        return base_url.replace('"from":0', f'"from":{start_index}')
+    def build_url(filter_type, building_types, page_size, page_number, start_index):
+        """Build URL for property listings with pagination"""
+        base_url = "https://www.bienici.com/realEstateAds.json"
+        
+        filters = BienIciUrlBuilder._build_filters(
+            filter_type, building_types, page_number, page_size, start_index
+        )
+        
+        # Convert filters to JSON string
+        filters_json = json.dumps(filters, separators=(',',':')) 
+        # Encode filters to URL format
+        filters_param = urllib.parse.quote(filters_json)
+        
+        return f"{base_url}?filters={filters_param}&extensionType=extendedIfNoResult&enableGoogleStructuredDataAggregates=true"
     
     @staticmethod
     def build_detail_url(ad_id):

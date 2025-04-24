@@ -11,7 +11,12 @@ NEWSPIDER_MODULE = "immoscraper.spiders"
 
 ITEM_PIPELINES = {
     "immoscraper.pipelines.PropertyAdInserter": 100,
-    "immoscraper.pipelines.ScrapReporter": 200,
+    # replaced by FetchingReporterExtension
+    # "immoscraper.pipelines.ScrapReporter": 200,
+}
+
+EXTENSIONS = {
+    'immoscraper.extensions.FetchingReporterExtension': 500,
 }
 
 IMMO_FETCH_MONGO_URI = os.getenv("IMMO_FETCH_MONGO_URI")

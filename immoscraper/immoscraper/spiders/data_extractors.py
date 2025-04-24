@@ -1,5 +1,4 @@
 import logging
-from ..utils import LocationService
 
 logger = logging.getLogger(__name__)
 
@@ -84,42 +83,31 @@ class PropertyDataExtractor:
         return None
     
     @staticmethod
+    def _extract_from_blur_info(data):
+        """Extract coordinates from blur info if available"""
+        if 'blurInfo' in data and isinstance(data['blurInfo'], dict) and 'position' in data['blurInfo']:
+            blur_info = data['blurInfo']
+            if 'position' in blur_info and 'lat' in blur_info['position'] and 'lon' in blur_info['position']:
+                return blur_info['position']['lat'], blur_info['position']['lon']
+        return None
+    
+    @staticmethod
     def extract_coordinates(detail_data, basic_data, city_insee_code):
         """Extract coordinates from multiple potential sources"""
-        # Try from blurInfo.position
-        if 'blurInfo' in detail_data and isinstance(detail_data['blurInfo'], dict) and 'position' in detail_data['blurInfo']:
-            blurInfo = detail_data['blurInfo']
-            if 'position' in blurInfo and 'lat' in blurInfo['position'] and 'lon' in blurInfo['position']:
-                return blurInfo['position']['lat'], blurInfo['position']['lon']
+        # Try from blurInfo.position in detail data
+        coords = PropertyDataExtractor._extract_from_blur_info(detail_data)
+        if coords:
+            return coords
         
-        # Try from coordinates
+        # Try from coordinates in detail data
         if 'coordinates' in detail_data:
             if isinstance(detail_data['coordinates'], dict) and 'lat' in detail_data['coordinates'] and 'lng' in detail_data['coordinates']:
                 return detail_data['coordinates']['lat'], detail_data['coordinates']['lng']
         
-        # Try from basic data
-        if 'blurInfo' in basic_data and 'position' in basic_data['blurInfo']:
-            blurInfo = basic_data['blurInfo']
-            if isinstance(blurInfo, dict) and 'position' in blurInfo and 'lat' in blurInfo['position'] and 'lon' in blurInfo['position']:
-                return blurInfo['position']['lat'], blurInfo['position']['lon']
+        # Try from blurInfo.position in basic data
+        coords = PropertyDataExtractor._extract_from_blur_info(basic_data)
+        if coords:
+            return coords
         
-        # Try geocoding
-        city = PropertyDataExtractor.extract_city(detail_data, basic_data)
-        if city and city_insee_code and city_insee_code != "00000":
-            logger.info(f"Getting coordinates via geocoding API for {city}-{city_insee_code}")
-            return LocationService.get_coordinates_from_place(city, city_insee_code)
-        
-        # Default values
-        return 0.0, 0.0
-
-
-class DataValidator:
-    """Validate and normalize property data"""
-    
-    @staticmethod
-    def validate_item(data):
-        """Ensure data is valid for PropertyAdItem and return cleaned data"""
-        # This method is no longer used with TypedDict, but leaving it in place
-        # in case there's a need for general validation logic
-        logger.debug("Data validation handled by TypedDict")
-        return data 
+        # No coordinates found
+        return None, None 

@@ -2,32 +2,28 @@ import json
 import scrapy
 import datetime
 import logging
-from ..items import PropertyAdItem, BuildingType, EnergyConsumption, GES
+from ..items import PropertyAdItem, EnergyConsumption, GES
 from ..utils import BuildingTypeConverter
 from .data_extractors import PropertyDataExtractor
 from .url_builder import BienIciUrlBuilder
-from scrapy.utils.project import get_project_settings
 
 class BienIciSpider(scrapy.Spider):
     name = 'bienici'
     allowed_domains = ['bienici.com']
     
-    def __init__(self, property_type='all', transaction_type='all', location='france', *args, **kwargs):
+    def __init__(self, property_type='all', transaction_type='all', location='france', max_pages=None, *args, **kwargs):
         super(BienIciSpider, self).__init__(*args, **kwargs)
         
-        # Load settings
-        settings = get_project_settings()
-        self.max_pages = 200
-        self.page_size = settings.getint('BIENICI_PAGE_SIZE', 24)
+        self.max_pages = int(max_pages) if max_pages else None # number of pages to scrape (None = all)
+        self.page_size = 24 # number of ads per page
         
-        self.transaction_type = transaction_type
-        self.filter_type = self._get_filter_type(transaction_type)
+        self.transaction_type = transaction_type # buy or rent
+        self.filter_type = self._get_filter_type(transaction_type) # property type filter
         
-        self.property_type = property_type
-        self.building_types = self._get_building_types(property_type)
+        self.property_type = property_type # house, apartment, etc.
+        self.building_types = self._get_building_types(property_type) # list of building types
         
-        self.location = location
-        self.base_url = BienIciUrlBuilder.build_search_url(self.filter_type, self.building_types, self.page_size)
+        self.location = location # country (FR)
         
         self.logger.info(f"Initialized BienIci spider with page_size={self.page_size}, max_pages={self.max_pages}")
     
@@ -51,23 +47,32 @@ class BienIciSpider(scrapy.Spider):
         """Entry point for the spider"""
         self.logger.info(f"Starting BienIci spider for {self.transaction_type} - {self.property_type} - {self.location}")
         
+        url = BienIciUrlBuilder.build_url(
+            self.filter_type,
+            self.building_types,
+            self.page_size,
+            1,  # page_number
+            0   # start_index
+        )
+        
         yield scrapy.Request(
-            url=BienIciUrlBuilder.build_pagination_url(self.base_url, 0),
+            url=url,
             callback=self.parse_listings,
-            meta={'page': 1}
+            meta={'page': 1},
+            dont_filter=True
         )
     
     def parse_listings(self, response):
         """Parse response for property listings"""
-        current_page = response.meta.get('page', 1)
+        page_number = response.meta['page']
         
         try:
             data = json.loads(response.text)
             
             total_count = data.get('total', 0)
-            listings    = data.get('realEstateAds', [])
+            listings = data.get('realEstateAds', [])
             
-            self.logger.info(f"Page {current_page}: found {len(listings)} ads out of {total_count}")
+            self.logger.info(f"Page {page_number}: {len(listings)} ads / {total_count} total")
             
             # Process each listing on this page
             for listing in listings:
@@ -89,24 +94,37 @@ class BienIciSpider(scrapy.Spider):
                     meta=meta_data
                 )
             
-            # Pagination – one page at a time
-            if listings and current_page < self.max_pages:
-                next_page   = current_page + 1
+            # Pagination: while the page is full, go to the next one
+            if listings and (
+                len(listings) == self.page_size and 
+                (self.max_pages is None or page_number < self.max_pages)
+            ):
+                next_page = page_number + 1
                 start_index = (next_page - 1) * self.page_size
-                if start_index < total_count:
-                    self.logger.info(f"Moving to page {next_page}")
-                    yield scrapy.Request(
-                        url=BienIciUrlBuilder.build_pagination_url(self.base_url, start_index),
-                        callback=self.parse_listings,
-                        meta={'page': next_page}
-                    )
+                
+                self.logger.info(f"→ Page {next_page} (from={start_index})")
+                
+                next_url = BienIciUrlBuilder.build_url(
+                    self.filter_type,
+                    self.building_types,
+                    self.page_size,
+                    next_page,
+                    start_index
+                )
+                
+                yield scrapy.Request(
+                    url=next_url,
+                    callback=self.parse_listings,
+                    meta={'page': next_page},
+                    dont_filter=True
+                )
             else:
-                self.logger.info("No more pages to scrape")
+                self.logger.info("No more pages to scrape.")
             
         except json.JSONDecodeError:
             self.logger.error(f"Error decoding JSON response: {response.text[:200]}…")
         except Exception as e:
-            self.logger.error(f"Error processing page {current_page}: {e}")
+            self.logger.error(f"Error processing page {page_number}: {e}")
 
 
     def parse_listing_details(self, response):
