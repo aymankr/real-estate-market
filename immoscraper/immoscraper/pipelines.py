@@ -44,7 +44,7 @@ class PropertyAdInserter(object):
             raise
 
     def process_item(self, item: PropertyAdItem, spider: Spider):
-        property_id = item.get('source_id') or item.get('reference') # TODO check if id should be source_id or reference, or generated
+        property_id = f"{item['building_type'].name}-{item['price']}-{item['area']}"
         self.logger.info(f"Processing item: {property_id}")
         
         try:
