@@ -8,6 +8,7 @@ class EnvVarsProvider(object):
     _analysis_schedules_collection_name: str
     
     _kafka_host: str
+    _kafka_topic_name: str
 
     _immo_viz_api_url: str
 
@@ -27,6 +28,7 @@ class EnvVarsProvider(object):
                 "ANALYSIS_SCHEDULES_COLLECTION_NAME"
             ]
             self._kafka_host = os.environ["KAFKA_HOST"]
+            self._kafka_topic_name = os.environ["KAFKA_TOPIC_NAME"]
             self._immo_viz_api_url = os.environ["IMMO_VIZ_API_URL"]
         except KeyError as e:
             raise KeyError(f"Environment variable {e} not set")
@@ -42,9 +44,12 @@ class EnvVarsProvider(object):
 
     def get_analysis_schedules_collection_name(self):
         return self._analysis_schedules_collection_name
-
-    def get_kafka_host(self):
-        return self._kafka_host
+        
+    def get_kafka_bootstrap_servers(self):
+        return [self._kafka_host]
+        
+    def get_kafka_topic_name(self):
+        return self._kafka_topic_name
 
     def get_immo_viz_api_url(self):
         return self._immo_viz_api_url

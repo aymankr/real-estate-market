@@ -43,7 +43,7 @@ class SourcePropertyAd(TypedDict):
     is_rent: bool
     price: float
     area: float
-    latitutde: Optional[float]
+    latitude: Optional[float]
     longitude: Optional[float]
     rooms_count: Optional[int]
     energy_consumption: Optional[EnergyConsumption]
@@ -69,3 +69,15 @@ class SourcePropertyAdDAO:
     def get_nb_ads_for_source(self, source_id: str) -> int:
         """Returns the number of ads for a source."""
         return self._collection.count_documents({"source_id": source_id})
+
+    def get_ads_for_source(self, source_id: str) -> list[dict]:
+        from analysis_scheduler.daos.analysis_schedules_dao import AnalysisSchedulesDAO
+        
+        schedule_dao = AnalysisSchedulesDAO()
+        schedule = schedule_dao.get_by_source_id(source_id)
+        
+        query = {"source_id": source_id}
+        if schedule and schedule.get("last_schedule_date"):
+            query["last_seen"] = {"$gt": schedule["last_schedule_date"]}
+        
+        return list(self._collection.find(query))

@@ -176,7 +176,7 @@ class BienIciSpider(scrapy.Spider):
                 is_rent=detail_data.get('transactionType') == 'rent',
                 price=float(detail_data.get('price', 0)),
                 area=float(detail_data.get('surfaceArea', 0)),
-                latitutde=float(lat) if lat is not None else None,
+                latitude=float(lat) if lat is not None else None,
                 longitude=float(lon) if lon is not None else None,
                 rooms_count=int(detail_data.get('roomsQuantity')) if detail_data.get('roomsQuantity') is not None else None,
                 energy_consumption=energy_consumption,
