@@ -208,6 +208,21 @@ services:
         networks:
             - app-tier
 
+    # grafana:
+    #     image: grafana/grafana-enterprise
+    #     container_name: grafana
+    #     restart: unless-stopped
+    #     user: 1000:1000
+    #     environment:
+    #         - GF_SERVER_ROOT_URL=http://grafana.immoviz.com/
+    #         - GF_INSTALL_PLUGINS=grafana-clock-panel
+    #     ports:
+    #         - '3000:3000'
+    #     volumes:
+    #         - .grafana_storage:/var/lib/grafana
+    #     networks:
+    #         - app-tier
+
 networks:
     app-tier:
         driver: bridge
@@ -217,3 +232,4 @@ volumes:
     immo-fetch-db:
     immo-viz-db:
     immo-monitoring-db:
+    grafana_storage:
