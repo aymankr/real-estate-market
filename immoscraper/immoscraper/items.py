@@ -39,7 +39,7 @@ class PropertyAdItem(TypedDict):
     is_rent: bool
     price: float
     area: float
-    latitutde: Optional[float]
+    latitude: Optional[float]
     longitude: Optional[float]
     rooms_count: Optional[int]
     energy_consumption: Optional[EnergyConsumption]

@@ -13,7 +13,7 @@ class SourcePropertyAdMongo(TypedDict):
     is_rent: bool
     price: float
     area: float
-    latitutde: Optional[float]
+    latitude: Optional[float]
     longitude: Optional[float]
     rooms_count: Optional[int]
     energy_consumption: Optional[EnergyConsumption]
@@ -58,7 +58,7 @@ class PropertyAdInserter(object):
     
     def _log_item(self, item: PropertyAdItem):
         """Log item details including geolocation and timestamp."""
-        lat = item.get('latitutde') or 'N/A'
+        lat = item.get('latitude') or 'N/A'
         lon = item.get('longitude') or 'N/A'
         self.logger.info(
             "Item details: "
@@ -82,7 +82,7 @@ class PropertyAdInserter(object):
                 "is_rent": item["is_rent"],
                 "price": item["price"],
                 "area": item["area"],
-                "latitude": item["latitutde"],
+                "latitude": item["latitude"],
                 "longitude": item["longitude"],
                 "rooms_count": item["rooms_count"],
                 "energy_consumption": item["energy_consumption"].value if item["energy_consumption"] else None,
