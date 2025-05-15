@@ -10,18 +10,29 @@ echo "[$(date)] Starting scheduling loop"
 echo "[$(date)] Spiders to run: $SPIDERS"
 echo "[$(date)] Run times: $TIMES"
 
-while true; do
-    echo "Checking current time $(date)"
+# Run the spiders immediately on startup
+echo "[$(date)] Running spiders immediately on startup"
+for spider in $SPIDERS; do
+    echo "[$(date)] Running spider $spider"
+    poetry run scrapy crawl $spider
+done
 
-    CURRENT_TIME=$(date)
+while true; do
+    # Current time format: HH:MM
+    CURRENT_TIME=$(date +"%H:%M")
+    echo "[$(date)] Checking current time: $CURRENT_TIME"
+
     for time in $TIMES; do
-        # if current time is equal (60 seconds margin) to the time in the list
-        if [ $(date -d "$time" +%s) -le $(date -d "$CURRENT_TIME" +%s) ] && [ $(date -d "$time" +%s) -ge $(date -d "$CURRENT_TIME -60 seconds" +%s) ]; then
+        # Compare time strings directly (HH:MM)
+        if [ "$CURRENT_TIME" = "$time" ]; then
+            echo "[$(date)] Time match: $CURRENT_TIME = $time"
             for spider in $SPIDERS; do
                 echo "[$(date)] Running spider $spider"
                 poetry run scrapy crawl $spider
             done
         fi
     done
+    
+    # Wait for a minute before checking again
     sleep 60
 done

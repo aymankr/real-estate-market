@@ -1,4 +1,3 @@
-from datetime import datetime
 from enum import Enum
 from typing import Optional, TypedDict
 
@@ -45,3 +44,5 @@ class PropertyAdItem(TypedDict):
     rooms_count: Optional[int]
     energy_consumption: Optional[EnergyConsumption]
     ges: Optional[GES]
+    city_insee_code: str
+    publication_date: str
