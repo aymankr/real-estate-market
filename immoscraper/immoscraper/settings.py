@@ -11,8 +11,6 @@ NEWSPIDER_MODULE = "immoscraper.spiders"
 
 ITEM_PIPELINES = {
     "immoscraper.pipelines.PropertyAdInserter": 100,
-    # replaced by FetchingReporterExtension
-    # "immoscraper.pipelines.ScrapReporter": 200,
 }
 
 EXTENSIONS = {
