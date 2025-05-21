@@ -21,7 +21,10 @@ class AnalysisSchedulesDAO:
             return None
         return AnalysisSchedule(**mongo_doc)
 
-    def insert_one(self, source_id: str):
+    def insert_one(self, source_id: str, last_schedule_date: datetime):
         self._collection.insert_one(
-            AnalysisSchedule(source_id=source_id, last_schedule_date=datetime.now())
+            AnalysisSchedule(
+                source_id=source_id,
+                last_schedule_date=last_schedule_date
+            )
         )

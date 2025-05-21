@@ -73,11 +73,8 @@ class SourcePropertyAdDAO:
     def get_ads_for_source(self, source_id: str) -> list[dict]:
         from analysis_scheduler.daos.analysis_schedules_dao import AnalysisSchedulesDAO
         
-        schedule_dao = AnalysisSchedulesDAO()
-        schedule = schedule_dao.get_by_source_id(source_id)
-        
+        schedule = AnalysisSchedulesDAO().get_by_source_id(source_id)
         query = {"source_id": source_id}
-        if schedule and schedule.get("last_schedule_date"):
+        if schedule:
             query["last_seen"] = {"$gt": schedule["last_schedule_date"]}
-        
         return list(self._collection.find(query))
