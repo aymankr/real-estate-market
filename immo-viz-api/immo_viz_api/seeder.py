@@ -20,7 +20,7 @@ def seed_regions(db: Session):
                 line.strip().split(",")
             )
             region = Region(
-                insee_code=int(insee_code),
+                region_insee_code=int(insee_code),
                 name=name,
                 area=float(area),
                 population=int(population),
@@ -49,7 +49,7 @@ def seed_departments(db: Session):
                 region_insee_code,
             ) = line.strip().split(",")
             department = Department(
-                insee_code=int(insee_code),
+                department_insee_code=int(insee_code),
                 name=name,
                 area=float(area),
                 population=int(population),
@@ -74,7 +74,7 @@ def seed_cities(db: Session):
                 line.strip().split(",")
             )
             city = City(
-                insee_code=str(insee_code),
+                city_insee_code=str(insee_code),
                 name=name,
                 zip_code=int(zip_code),
                 latitude=float(latitude) if len(latitude) > 0 else None,

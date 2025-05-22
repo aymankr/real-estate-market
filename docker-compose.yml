@@ -54,125 +54,125 @@ services:
         networks:
             - app-tier
 
-    immoscraper:
-        build:
-            context: ./immoscraper
-            dockerfile: Dockerfile
-        environment:
-            IMMO_FETCH_MONGO_URI: "mongodb://${IMMO_FETCH_MONGO_USER}:${IMMO_FETCH_MONGO_PASSWORD}@immo-fetch-db:27017/${IMMO_FETCH_MONGO_DB_NAME}?authSource=admin"
-            IMMO_FETCH_MONGO_DB_NAME: ${IMMO_FETCH_MONGO_DB_NAME}
-            IMMO_FETCH_MONGO_COLLECTION_NAME: ${IMMO_FETCH_MONGO_COLLECTION_NAME}
-            IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
-            LOG_LEVEL: ${LOG_LEVEL}
-            SCRAPS: ${SCRAPS}       # List of spiders to launch
-            SCRAPS_RUN_TIMES: ${SCRAPS_RUN_TIMES}    # List of times (HH:MM)
-        depends_on:
-            - immo-fetch-db
-            - immo-viz-api
-        networks:
-            - app-tier
+    # immoscraper:
+    #     build:
+    #         context: ./immoscraper
+    #         dockerfile: Dockerfile
+    #     environment:
+    #         IMMO_FETCH_MONGO_URI: "mongodb://${IMMO_FETCH_MONGO_USER}:${IMMO_FETCH_MONGO_PASSWORD}@immo-fetch-db:27017/${IMMO_FETCH_MONGO_DB_NAME}?authSource=admin"
+    #         IMMO_FETCH_MONGO_DB_NAME: ${IMMO_FETCH_MONGO_DB_NAME}
+    #         IMMO_FETCH_MONGO_COLLECTION_NAME: ${IMMO_FETCH_MONGO_COLLECTION_NAME}
+    #         IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
+    #         LOG_LEVEL: ${LOG_LEVEL}
+    #         SCRAPS: ${SCRAPS}       # List of spiders to launch
+    #         SCRAPS_RUN_TIMES: ${SCRAPS_RUN_TIMES}    # List of times (HH:MM)
+    #     depends_on:
+    #         - immo-fetch-db
+    #         - immo-viz-api
+    #     networks:
+    #         - app-tier
     
-    analysis-scheduler:
-        build:
-            context: ./analysis-scheduler
-            dockerfile: Dockerfile
-        environment:
-            IMMO_FETCH_MONGO_URI: "mongodb://${IMMO_FETCH_MONGO_USER}:${IMMO_FETCH_MONGO_PASSWORD}@immo-fetch-db:27017/${IMMO_FETCH_MONGO_DB_NAME}?authSource=admin"
-            IMMO_FETCH_MONGO_DB_NAME: ${IMMO_FETCH_MONGO_DB_NAME}
-            IMMO_FETCH_MONGO_COLLECTION_NAME: ${IMMO_FETCH_MONGO_COLLECTION_NAME}
-            ANALYSIS_SCHEDULES_COLLECTION_NAME: ${ANALYSIS_SCHEDULES_COLLECTION_NAME}
-            IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
-            KAFKA_HOST: ${KAFKA_HOST}
-            KAFKA_TOPIC_NAME: ${KAFKA_TOPIC_NAME}
-            START_SCHEDULER_INTERVAL: ${START_SCHEDULER_INTERVAL}
-        depends_on:
-            - immo-fetch-db
-            - immo-viz-api
-            - kafka
-        networks:
-            - app-tier
+    # analysis-scheduler:
+    #     build:
+    #         context: ./analysis-scheduler
+    #         dockerfile: Dockerfile
+    #     environment:
+    #         IMMO_FETCH_MONGO_URI: "mongodb://${IMMO_FETCH_MONGO_USER}:${IMMO_FETCH_MONGO_PASSWORD}@immo-fetch-db:27017/${IMMO_FETCH_MONGO_DB_NAME}?authSource=admin"
+    #         IMMO_FETCH_MONGO_DB_NAME: ${IMMO_FETCH_MONGO_DB_NAME}
+    #         IMMO_FETCH_MONGO_COLLECTION_NAME: ${IMMO_FETCH_MONGO_COLLECTION_NAME}
+    #         ANALYSIS_SCHEDULES_COLLECTION_NAME: ${ANALYSIS_SCHEDULES_COLLECTION_NAME}
+    #         IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
+    #         KAFKA_HOST: ${KAFKA_HOST}
+    #         KAFKA_TOPIC_NAME: ${KAFKA_TOPIC_NAME}
+    #         START_SCHEDULER_INTERVAL: ${START_SCHEDULER_INTERVAL}
+    #     depends_on:
+    #         - immo-fetch-db
+    #         - immo-viz-api
+    #         - kafka
+    #     networks:
+    #         - app-tier
 
-    kafka:
-        image: 'bitnami/kafka:latest'
-        container_name: kafka
-        ports:
-            - '9092:9092'
-        environment:
-            - KAFKA_CFG_NODE_ID=0
-            - KAFKA_CFG_PROCESS_ROLES=controller,broker
-            - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-            - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-            - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
-            - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-            # # Configuration to auto-create topics
-            # - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-            # - KAFKA_CFG_NUM_PARTITIONS=1
-            # - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
-            # # Add pre-created topics
-            # - KAFKA_CREATE_TOPICS=${KAFKA_TOPIC_NAME}:1:1
-        depends_on:
-            - immo-viz-api
-        networks:
-            - app-tier
+    # kafka:
+    #     image: 'bitnami/kafka:latest'
+    #     container_name: kafka
+    #     ports:
+    #         - '9092:9092'
+    #     environment:
+    #         - KAFKA_CFG_NODE_ID=0
+    #         - KAFKA_CFG_PROCESS_ROLES=controller,broker
+    #         - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+    #         - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+    #         - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+    #         - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    #         # # Configuration to auto-create topics
+    #         # - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+    #         # - KAFKA_CFG_NUM_PARTITIONS=1
+    #         # - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
+    #         # # Add pre-created topics
+    #         # - KAFKA_CREATE_TOPICS=${KAFKA_TOPIC_NAME}:1:1
+    #     depends_on:
+    #         - immo-viz-api
+    #     networks:
+    #         - app-tier
             
-    spark-master:
-        image: bitnami/spark:3.5.0
-        container_name: spark-master
-        environment:
-            - SPARK_MODE=master
-            - SPARK_RPC_AUTHENTICATION_ENABLED=no
-            - SPARK_RPC_ENCRYPTION_ENABLED=no
-            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-            - SPARK_SSL_ENABLED=no
-            - SPARK_USER=spark
-        ports:
-            - "${SPARK_MASTER_RPC_PORT}:${SPARK_MASTER_RPC_PORT}"
-            - "${SPARK_MASTER_UI_HOST_PORT}:${SPARK_MASTER_UI_PORT}"
-        depends_on:
-            - kafka
-        networks:
-            - app-tier
+    # spark-master:
+    #     image: bitnami/spark:3.5.0
+    #     container_name: spark-master
+    #     environment:
+    #         - SPARK_MODE=master
+    #         - SPARK_RPC_AUTHENTICATION_ENABLED=no
+    #         - SPARK_RPC_ENCRYPTION_ENABLED=no
+    #         - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+    #         - SPARK_SSL_ENABLED=no
+    #         - SPARK_USER=spark
+    #     ports:
+    #         - "${SPARK_MASTER_RPC_PORT}:${SPARK_MASTER_RPC_PORT}"
+    #         - "${SPARK_MASTER_UI_HOST_PORT}:${SPARK_MASTER_UI_PORT}"
+    #     depends_on:
+    #         - kafka
+    #     networks:
+    #         - app-tier
 
-    spark-worker:
-        image: bitnami/spark:3.5.0
-        environment:
-            - SPARK_MODE=worker
-            - SPARK_MASTER_URL=spark://spark-master:${SPARK_MASTER_RPC_PORT}
-            - SPARK_WORKER_MEMORY=1G
-            - SPARK_WORKER_CORES=1
-            - SPARK_RPC_AUTHENTICATION_ENABLED=no
-            - SPARK_RPC_ENCRYPTION_ENABLED=no
-            - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-            - SPARK_SSL_ENABLED=no
-            - SPARK_USER=spark
-        depends_on:
-            - spark-master
-        networks:
-            - app-tier
-        deploy:
-            replicas: ${SPARK_WORKER_REPLICAS}
+    # spark-worker:
+    #     image: bitnami/spark:3.5.0
+    #     environment:
+    #         - SPARK_MODE=worker
+    #         - SPARK_MASTER_URL=spark://spark-master:${SPARK_MASTER_RPC_PORT}
+    #         - SPARK_WORKER_MEMORY=1G
+    #         - SPARK_WORKER_CORES=1
+    #         - SPARK_RPC_AUTHENTICATION_ENABLED=no
+    #         - SPARK_RPC_ENCRYPTION_ENABLED=no
+    #         - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+    #         - SPARK_SSL_ENABLED=no
+    #         - SPARK_USER=spark
+    #     depends_on:
+    #         - spark-master
+    #     networks:
+    #         - app-tier
+    #     deploy:
+    #         replicas: ${SPARK_WORKER_REPLICAS}
 
-    property-ads-analyzer:
-        build:
-            context: ./property-ads-analyzer
-            dockerfile: Dockerfile
-        environment:
-            IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
-            KAFKA_HOST: ${KAFKA_HOST}
-            KAFKA_TOPIC_NAME: ${KAFKA_TOPIC_NAME}
-        command: >
-            /opt/bitnami/spark/bin/spark-submit
-            --master spark://spark-master:7077
-            --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
-            /opt/app/consumer.py
-        depends_on:
-            - kafka
-            - spark-master
-            - spark-worker
-            - immo-viz-api
-        restart: on-failure
-        networks:
-            - app-tier
+    # property-ads-analyzer:
+    #     build:
+    #         context: ./property-ads-analyzer
+    #         dockerfile: Dockerfile
+    #     environment:
+    #         IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
+    #         KAFKA_HOST: ${KAFKA_HOST}
+    #         KAFKA_TOPIC_NAME: ${KAFKA_TOPIC_NAME}
+    #     command: >
+    #         /opt/bitnami/spark/bin/spark-submit
+    #         --master spark://spark-master:7077
+    #         --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0
+    #         /opt/app/consumer.py
+    #     depends_on:
+    #         - kafka
+    #         - spark-master
+    #         - spark-worker
+    #         - immo-viz-api
+    #     restart: on-failure
+    #     networks:
+    #         - app-tier
 
     immo-viz-api:
         build:
