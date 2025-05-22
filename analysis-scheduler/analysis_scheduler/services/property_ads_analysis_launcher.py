@@ -90,7 +90,8 @@ def launch_ads_analysis_for_source(source_id: str) -> Tuple[int, int]:
         
         if success > 0:
             schedules_dao = AnalysisSchedulesDAO()
-            schedules_dao.insert_one(source_id)
+            max_seen = max(ad["last_seen"] for ad in ads)
+            schedules_dao.insert_one(source_id, last_schedule_date=max_seen)
             logger.info(f"Recorded scheduling for source {source_id}: {success} sent, {failure} failed")
         
         return success, failure

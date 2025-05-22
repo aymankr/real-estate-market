@@ -74,3 +74,24 @@ class BuildingTypeConverter:
             logger.debug(f"Converted building type '{building_type}' to building type enum: {building_type_enum}")
             
         return building_type_enum 
+
+LOGIC_IMMO_PLACE_IDS = [
+    "AD04FR5",  # Île-de-France
+    "AD04FR10", # Centre-Val de Loire
+    "AD04FR13", # Bourgogne-Franche-Comté
+    "AD04FR14", # Normandie
+    "AD04FR16", # Hauts-de-France
+    "AD04FR20", # Grand Est
+    "AD04FR21", # Pays de la Loire
+    "AD04FR22", # Bretagne
+    "AD04FR27", # Nouvelle-Aquitaine
+    "AD04FR28", # Occitanie
+    "AD04FR31", # Auvergne-Rhône-Alpes
+    "AD04FR33", # Provence-Alpes-Côte d’Azur
+    "AD04FR34", # Corse
+    "AD04GP1",  # Guadeloupe
+    "AD04GF1",  # Guyane
+    "AD04MQ1",  # Martinique
+    "AD04RE1",  # La Réunion
+    "AD04YT1",  # Mayotte
+]

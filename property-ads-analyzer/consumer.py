@@ -49,6 +49,12 @@ def post_batch_to_api(df, batch_id):
     batch_start = datetime.now(timezone.utc)
     success_count = failure_count = 0
 
+    # filter out records where energy_consumption or GES is null
+    # filtered_df = df.filter(
+    #     (col("energy_consumption").isNotNull()) & 
+    #     (col("GES").isNotNull())
+    # )
+
     # 1) push each ad
     for rec in df.toJSON().collect():
         try:
