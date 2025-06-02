@@ -225,6 +225,23 @@ services:
     #     networks:
     #         - app-tier
 
+    dvf-producer:
+        build:
+            context: .
+            dockerfile: dvf-producer/Dockerfile
+        environment:
+            KAFKA_HOST:        ${KAFKA_HOST}
+            KAFKA_TOPIC_NAME:  ${DVF_KAFKA_TOPIC}
+            VIZ_DATABASE_URL:        "postgresql://${IMMO_VIZ_DB_POSTGRES_USER}:${IMMO_VIZ_DB_POSTGRES_PASSWORD}@immo-viz-db:5432/${IMMO_VIZ_DB_POSTGRES_DB}?sslmode=disable"
+            MONITORING_DATABASE_URL: "postgresql://${IMMO_MONITORING_DB_POSTGRES_USER}:${IMMO_MONITORING_DB_POSTGRES_PASSWORD}@immo-monitoring-db:5432/${IMMO_MONITORING_DB_POSTGRES_DB}?sslmode=disable"
+            DVF_PRODUCER_MAX_WORKERS: ${DVF_PRODUCER_MAX_WORKERS}
+        depends_on:
+            - kafka
+            - immo-viz-db
+        restart: "no"
+        networks:
+            - app-tier
+
 networks:
     app-tier:
         driver: bridge
