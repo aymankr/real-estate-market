@@ -1,5 +1,5 @@
 from enum import Enum
-from sqlalchemy import Column, Integer, Float, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, Float, String, Boolean, CHAR, DateTime
 from immo_viz_api.database import VizBase, MonitoringBase
 
 # --- Viz database models --- #
@@ -61,7 +61,16 @@ class BuildingType(int, Enum):
     OTHER = 9
 
 
-class EnergyConsumption(int, Enum):
+class EnergyConsumption(str, Enum):
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E"
+    F = "F"
+    G = "G"
+
+class EnergyConsumptionScore(int, Enum):
     A = 0
     B = 1
     C = 2
@@ -70,8 +79,16 @@ class EnergyConsumption(int, Enum):
     F = 5
     G = 6
 
+class GES(str, Enum):
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E"
+    F = "F"
+    G = "G"
 
-class GES(int, Enum):
+class GESScore(int, Enum):
     A = 0
     B = 1
     C = 2
@@ -79,7 +96,6 @@ class GES(int, Enum):
     E = 4
     F = 5
     G = 6
-
 
 class PropertyAd(VizBase):
     __tablename__ = "property_ads"
@@ -87,15 +103,18 @@ class PropertyAd(VizBase):
     id = Column(Integer, primary_key=True, nullable=False)
     city_insee_code = Column(String, nullable=False)
     building_type = Column(Integer, nullable=False)
-    is_rental = Column(Integer, nullable=False)
+    is_rental = Column(Boolean, nullable=False)
     price = Column(Float, nullable=False)
     area = Column(Float, nullable=False)
     publication_date = Column(DateTime, nullable=False)
     rooms_count = Column(Integer, nullable=True)
     longitude = Column(Float, nullable=True)
     latitude = Column(Float, nullable=True)
-    energy_consumption = Column(Integer, nullable=True)
-    ges = Column(Integer, nullable=True)
+    energy_consumption = Column(CHAR, nullable=True)
+    ges = Column(CHAR, nullable=True)
+    energy_consumption_score = Column(Integer, nullable=True)
+    ges_score = Column(Integer, nullable=True)
+    price_per_m2 = Column(Float, nullable=True)
     inserted_at = Column(DateTime, nullable=False)
 
 

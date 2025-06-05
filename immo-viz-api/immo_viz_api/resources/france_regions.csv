@@ -6,7 +6,7 @@ insee_code,name,area,population,capital_city_insee_code
 32,Hauts-de-France, 31806.0,5983823,59350
 44,Grand Est, 57441.0,5568711,67482
 52,Pays de la Loire, 32082.0,3926389,44109
-53,Bretagne, 27208.0,3453023,35238
+53,BZH, 27208.0,3453023,35238
 75,Nouvelle-Aquitaine, 84036.0,6154772,33063
 76,Occitanie, 72724.0,6154729,31555
 84,Auvergne-Rhône-Alpes, 69711.0,8235923,69381
@@ -15,5 +15,5 @@ insee_code,name,area,population,capital_city_insee_code
 1,Guadeloupe, 1628.0,378561,97105
 2,Martinique, 1128.0,349925,97209
 3,Guyane, 83534.0,295385,97302
-4,La Réunion, 2504.0,885700,97411
+4,Réunion, 2504.0,885700,97411
 6,Mayotte, 376.0,320901,97611

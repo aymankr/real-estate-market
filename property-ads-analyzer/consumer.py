@@ -128,6 +128,12 @@ def handle_dvf(rec):
         log.debug(f"handle_dvf: building_type {btype} not house/apartment, skipping")
         return False
 
+    e = pick_energy(rec.get("city_insee_code"))
+    g = pick_ges(rec.get("city_insee_code"))
+    if e is None or g is None:
+        log.debug("handle_dvf: missing DPE or GES, skipping")
+        return False
+
     payload = {
         "city_insee_code":    rec["city_insee_code"],
         "building_type":      btype,
@@ -137,8 +143,8 @@ def handle_dvf(rec):
         "rooms_count":        rooms,
         "latitude":           rec.get("latitude"),
         "longitude":          rec.get("longitude"),
-        "energy_consumption": pick_energy(rec["city_insee_code"]),
-        "ges":                pick_ges(rec["city_insee_code"]),
+        "energy_consumption": e,
+        "ges":                g,
         "publication_date":   datetime.now(timezone.utc).isoformat(),
         "inserted_at":        datetime.now(timezone.utc).isoformat(),
     }
@@ -168,6 +174,10 @@ def handle_scraper(rec):
 
     rec["inserted_at"] = datetime.now(timezone.utc).isoformat()
     log.debug(f"handle_scraper: set inserted_at to {rec['inserted_at']}")
+
+    if rec.get("energy_consumption") is None or rec.get("ges") is None:
+        log.debug("handle_scraper: missing energy or ges, skipping")
+        return False
 
     if not rec.get("building_type") or rec.get("is_rental") is None or not rec.get("publication_date"):
         log.warning("handle_scraper: missing required fields, skipping record")
