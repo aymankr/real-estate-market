@@ -1,20 +1,17 @@
-FROM bitnami/spark:3.5.0
+# property-ads-analyzer/Dockerfile
+FROM python:3.12-slim
 
-USER root
-WORKDIR /opt/app
-
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir \
-      kafka-python==2.0.2 \
-      requests==2.31.0
-
-COPY consumer.py models.py /opt/app/
+WORKDIR /app
 
 RUN apt-get update && \
-    apt-get install -y dos2unix && \
-    dos2unix /opt/app/consumer.py /opt/app/models.py && \
+    apt-get install -y --no-install-recommends gcc && \
     rm -rf /var/lib/apt/lists/*
 
-RUN chmod +x /opt/app/consumer.py
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-USER 1001
+COPY consumer.py models.py /app/
+
+ENV PYTHONPATH=/app
+
+ENTRYPOINT ["python", "/app/consumer.py"]

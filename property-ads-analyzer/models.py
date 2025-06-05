@@ -1,10 +1,4 @@
 from enum import Enum
-from pyspark.sql.types import (
-    StructType, StructField,
-    StringType, FloatType,
-    BooleanType, IntegerType,
-    TimestampType,
-)
 
 class BuildingType(Enum):
     HOUSE     = 1
@@ -17,18 +11,36 @@ class BuildingType(Enum):
     WAREHOUSE = 8
     OTHER     = 9
 
-SchemaPropertyAd = StructType([
-    StructField("source_id", StringType(), True),
-    StructField("building_type", StringType(), True),
-    StructField("is_rent", BooleanType(), True),
-    StructField("price", FloatType(), True),
-    StructField("area", FloatType(), True),
-    StructField("latitude", FloatType(), True),
-    StructField("longitude", FloatType(), True),
-    StructField("city_insee_code", StringType(), True),
-    StructField("rooms_count", IntegerType(), True),
-    StructField("energy_consumption", StringType(), True),
-    StructField("ges", StringType(), True),
-    StructField("publication_date", StringType(), True),
-    StructField("last_seen", TimestampType(), True),
-])
+class EnergyConsumption(Enum):
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E"
+    F = "F"
+    G = "G"
+
+class GES(Enum):
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E"
+    F = "F"
+    G = "G"
+
+SchemaPropertyAd = {
+    "source_id":         str,
+    "building_type":     (str, int),
+    "is_rent":           bool,
+    "price":             (float, int),
+    "area":              (float, int),
+    "latitude":          (float, int, type(None)),
+    "longitude":         (float, int, type(None)),
+    "city_insee_code":   str,
+    "rooms_count":       int,
+    "energy_consumption": str,
+    "ges":               str,
+    "publication_date":  str,
+    "last_seen":         str,
+}

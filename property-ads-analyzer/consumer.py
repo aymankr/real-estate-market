@@ -1,163 +1,209 @@
+#!/usr/bin/env python3
 import os
-import time
 import json
 import logging
+import math
+import random
+import time
+import sys
+from datetime import datetime, timezone
+from kafka import KafkaConsumer, KafkaAdminClient
+from kafka.admin import NewTopic
+from kafka.errors import TopicAlreadyExistsError, NoBrokersAvailable
 import requests
 
-from datetime import datetime, timezone
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col
-from kafka.admin import KafkaAdminClient
-from kafka.errors import NoBrokersAvailable, KafkaError
+from models import BuildingType, EnergyConsumption
 
-from models import SchemaPropertyAd, BuildingType
+KAFKA_BOOTSTRAP   = os.getenv("KAFKA_HOST", "kafka:9092")
+TOPICS           = os.getenv("KAFKA_ANALYZER_TOPICS", "dvf-property-ads,property-ads").split(",")
+GROUP_ID         = os.getenv("KAFKA_CONSUMER_GROUP", "property-ads-analyzers")
+API_URL          = os.getenv("IMMO_VIZ_API_URL", "http://immo-viz-api:8000").rstrip("/")
+DVF_TOPIC        = os.getenv("DVF_KAFKA_TOPIC", "dvf-property-ads")
+LOG_LEVEL        = os.getenv("LOG_LEVEL", "INFO")
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("property-ads-analyzer")
+logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger("analyzer")
 
-VIZ_API = os.getenv("IMMO_VIZ_API_URL").rstrip("/")
-KAFKA_SERVERS = os.getenv("KAFKA_HOST").split(",")
-KAFKA_TOPIC = os.getenv("KAFKA_TOPIC_NAME")
+###
+# Give each city a globally stable energy value (75% of the time it's the same letter),
+# but keep a small proportion (25%) of "random variance" so that,
+# if you run the job multiple times, all the ads of the same city do not systematically have the same score.
+###
+_VALS = [e.value for e in EnergyConsumption]
+_e_cache = {}
+_g_cache = {}
 
-def wait_for_kafka_topic(servers, topic, max_retries=20, retry_interval=15):
-    """Poll Kafka until the topic exists (or give up)."""
-    for attempt in range(1, max_retries + 1):
+def pick_energy(city):
+    if not city:
+        log.debug("pick_energy: no city provided, returning None")
+        return None
+    if city not in _e_cache:
+        _e_cache[city] = random.choice(_VALS)
+        log.debug(f"pick_energy: first assignment for city {city} = {_e_cache[city]}")
+    if random.random() < 0.75:
+        log.debug(f"pick_energy: using cached value {_e_cache[city]} for city {city}")
+        return _e_cache[city]
+    choice = random.choice(_VALS)
+    log.debug(f"pick_energy: random variance for city {city} = {choice}")
+    return choice
+
+def pick_ges(city):
+    if not city:
+        log.debug("pick_ges: no city provided, returning None")
+        return None
+    if city not in _g_cache:
+        _g_cache[city] = random.choice(_VALS)
+        log.debug(f"pick_ges: first assignment for city {city} = {_g_cache[city]}")
+    if random.random() < 0.75:
+        log.debug(f"pick_ges: using cached value {_g_cache[city]} for city {city}")
+        return _g_cache[city]
+    choice = random.choice(_VALS)
+    log.debug(f"pick_ges: random variance for city {city} = {choice}")
+    return choice
+
+def wait_for_kafka(retries=30, delay=5):
+    for i in range(retries):
         try:
-            logger.info(f"Checking for Kafka topic '{topic}' (attempt {attempt}/{max_retries})")
-            admin = KafkaAdminClient(bootstrap_servers=servers)
-            if topic in admin.list_topics():
-                logger.info(f"→ Topic '{topic}' is ready")
-                admin.close()
-                return True
+            admin = KafkaAdminClient(bootstrap_servers=KAFKA_BOOTSTRAP)
+            admin.list_topics()
             admin.close()
-        except (NoBrokersAvailable, KafkaError) as e:
-            logger.warning(f"Kafka unavailable: {e}")
-        time.sleep(retry_interval)
-    logger.error(f"✗ Kafka topic '{topic}' never appeared after {max_retries} tries")
+            log.info("Kafka broker is available")
+            return True
+        except NoBrokersAvailable:
+            log.warning(f"Kafka unavailable, retry {i+1}/{retries}")
+            time.sleep(delay)
+    log.error("Kafka still unavailable after retries")
     return False
 
-def post_batch_to_api(df, batch_id):
-    """
-    Called once per micro-batch.  
-    - Sends each record to /property_ads  
-    - Emits a scheduling report to /analysis_reports  
-    """
-    # capture real batch window
-    batch_start = datetime.now(timezone.utc)
-    success_count = failure_count = 0
-
-    # filter out records where energy_consumption or GES is null
-    # filtered_df = df.filter(
-    #     (col("energy_consumption").isNotNull()) & 
-    #     (col("GES").isNotNull())
-    # )
-
-    # 1) push each ad
-    for rec in df.toJSON().collect():
+def ensure_topics(partitions=1, rf=1):
+    admin    = KafkaAdminClient(bootstrap_servers=KAFKA_BOOTSTRAP)
+    existing = set(admin.list_topics())
+    to_create = []
+    for t in TOPICS:
+        if t not in existing:
+            to_create.append(NewTopic(name=t, num_partitions=partitions, replication_factor=rf))
+            log.info(f"ensure_topics: scheduling creation of topic {t}")
+    if to_create:
         try:
-            payload = json.loads(rec)
+            admin.create_topics(to_create)
+            log.info(f"Created topics: {[t.name for t in to_create]}")
+        except TopicAlreadyExistsError:
+            log.warning("ensure_topics: topic already exists during creation race")
+    else:
+        log.info("ensure_topics: all topics already exist")
+    admin.close()
 
-            # map building_type from NAME→value
-            bt = payload.get("building_type")
-            if isinstance(bt, str) and bt in BuildingType.__members__:
-                payload["building_type"] = BuildingType[bt].value
+def post_to_api(endpoint, payload):
+    try:
+        log.debug(f"POSTing to /{endpoint}: {payload}")
+        r = requests.post(f"{API_URL}/{endpoint}/", json=payload, timeout=10)
+        r.raise_for_status()
+        log.info(f"POST /{endpoint} succeeded")
+        return True
+    except Exception as e:
+        log.error(f"POST /{endpoint} failed: {e}")
+        return False
 
-            # rename flags / dates
-            payload["is_rental"] = payload.pop("is_rent", None)
-            payload["publication_date"] = payload.pop("last_seen",
-                                                      payload.get("publication_date"))
+def handle_dvf(rec):
+    log.debug(f"handle_dvf: received record {rec}")
+    try:
+        price = float(rec.get("price", 0))
+        area  = float(rec.get("area", 0))
+        rooms = int(rec.get("rooms_count", 0))
+        btype = int(rec.get("building_type", 0))
+    except Exception as e:
+        log.warning(f"handle_dvf: invalid types, skipping record: {e}")
+        return False
 
-            # add insertion timestamp
-            payload["inserted_at"] = datetime.now(timezone.utc).isoformat()
+    if not (200 < price < 10_000_000):
+        log.debug(f"handle_dvf: price {price} out of bounds, skipping")
+        return False
+    if area <= 0:
+        log.debug(f"handle_dvf: area {area} invalid, skipping")
+        return False
+    if rooms <= 0:
+        log.debug(f"handle_dvf: rooms_count {rooms} invalid, skipping")
+        return False
+    if btype not in (BuildingType.HOUSE.value, BuildingType.APARTMENT.value):
+        log.debug(f"handle_dvf: building_type {btype} not house/apartment, skipping")
+        return False
 
-            # POST to immo-viz-api
-            r = requests.post(f"{VIZ_API}/property_ads", json=payload, timeout=10)
-            if 200 <= r.status_code < 300:
-                success_count += 1
-            else:
-                failure_count += 1
-                logger.error(f"POST /property_ads failed [{r.status_code}]: {r.text}")
-        except Exception as e:
-            failure_count += 1
-            logger.error(f"Error processing record: {e}")
-
-    # 2) send batch report
-    batch_end = datetime.now(timezone.utc)
-    report = {
-        "success": (failure_count == 0),
-        "started_at": batch_start.isoformat(),
-        "ended_at":   batch_end.isoformat(),
-        "duration_in_seconds": (batch_end - batch_start).total_seconds(),
-        "accepted": (success_count > 0),
-        "discard_reason": None if success_count > 0 else "All records failed processing"
+    payload = {
+        "city_insee_code":    rec["city_insee_code"],
+        "building_type":      btype,
+        "is_rental":          price <= 5000,
+        "price":              price,
+        "area":               area,
+        "rooms_count":        rooms,
+        "latitude":           rec.get("latitude"),
+        "longitude":          rec.get("longitude"),
+        "energy_consumption": pick_energy(rec["city_insee_code"]),
+        "ges":                pick_ges(rec["city_insee_code"]),
+        "publication_date":   datetime.now(timezone.utc).isoformat(),
+        "inserted_at":        datetime.now(timezone.utc).isoformat(),
     }
+    for k, v in payload.items():
+        if isinstance(v, float) and not math.isfinite(v):
+            payload[k] = 0.0 if k in ("price", "area") else None
+            log.debug(f"handle_dvf: cleaned non-finite {k} to {payload[k]}")
 
-    try:
-        r = requests.post(f"{VIZ_API}/analysis_reports", json=report, timeout=10)
-        if not (200 <= r.status_code < 300):
-            logger.error(f"POST /analysis_reports failed [{r.status_code}]: {r.text}")
-        else:
-            logger.info("✓ Analysis report sent successfully")
-    except Exception as e:
-        logger.error(f"Error sending analysis report: {e}")
+    return post_to_api("property_ads", payload)
 
-    logger.info(f"Batch {batch_id}: {success_count} successes, {failure_count} failures")
+def handle_scraper(rec):
+    log.debug(f"handle_scraper: received record {rec}")
+    bt = rec.get("building_type")
+    if isinstance(bt, str) and bt in BuildingType.__members__:
+        rec["building_type"] = BuildingType[bt].value
+        log.debug(f"handle_scraper: mapped building_type '{bt}' to {rec['building_type']}")
 
+    rec["is_rental"] = rec.pop("is_rent", None)
+    last = rec.pop("last_seen", None)
+    pub  = rec.get("publication_date")
+    if last:
+        rec["publication_date"] = last.isoformat() if hasattr(last, "isoformat") else last
+        log.debug(f"handle_scraper: used last_seen for publication_date: {rec['publication_date']}")
+    elif hasattr(pub, "isoformat"):
+        rec["publication_date"] = pub.isoformat()
+        log.debug(f"handle_scraper: formatted publication_date: {rec['publication_date']}")
 
-def main():
-    try:
-        logger.info("▶ Starting property-ads-analyzer")
+    rec["inserted_at"] = datetime.now(timezone.utc).isoformat()
+    log.debug(f"handle_scraper: set inserted_at to {rec['inserted_at']}")
 
-        logger.info("⟳ Waiting for Kafka topic…")
-        if not wait_for_kafka_topic(KAFKA_SERVERS, KAFKA_TOPIC):
-            logger.warning("Proceeding without confirmed Kafka topic")
+    if not rec.get("building_type") or rec.get("is_rental") is None or not rec.get("publication_date"):
+        log.warning("handle_scraper: missing required fields, skipping record")
+        return False
 
-        spark = (
-            SparkSession.builder
-            .appName("property-ads-analyzer")
-            .config("spark.sql.session.timeZone", "UTC")
-            .config("spark.task.maxFailures", "10")
-            .getOrCreate()
-        )
-        spark.sparkContext.setLogLevel("WARN")
-
-        # read raw JSON from Kafka
-        raw = (
-            spark.readStream
-            .format("kafka")
-            .option("kafka.bootstrap.servers", ",".join(KAFKA_SERVERS))
-            .option("subscribe", KAFKA_TOPIC)
-            .option("startingOffsets", "earliest")
-            .option("failOnDataLoss", "false")
-            .load()
-        )
-
-        # parse JSON → columns
-        parsed = (
-            raw.selectExpr("CAST(value AS STRING) AS json_str")
-               .select(from_json(col("json_str"), SchemaPropertyAd).alias("ad"))
-               .select("ad.*")
-        )
-
-        # dispatch each micro-batch
-        query = (
-            parsed.writeStream
-                  .foreachBatch(post_batch_to_api)
-                  .outputMode("append")
-                  .trigger(processingTime="1 minute")
-                  .start()
-        )
-
-        logger.info("✔ Streaming query started, awaiting termination")
-        query.awaitTermination()
-
-    except Exception as e:
-        logger.error(f"💥 Fatal error in Spark job: {e}", exc_info=True)
-        raise
-
+    return post_to_api("property_ads", rec)
 
 if __name__ == "__main__":
-    main()
+    if not wait_for_kafka():
+        log.error("Kafka unreachable, exiting")
+        sys.exit(1)
+    ensure_topics(
+        partitions=int(os.getenv("SCRAPER_KAFKA_PARTITIONS", "1")),
+        rf=int(os.getenv("SCRAPER_KAFKA_RF", "1"))
+    )
+
+    try:
+        consumer = KafkaConsumer(
+            *TOPICS,
+            bootstrap_servers=KAFKA_BOOTSTRAP,
+            group_id=GROUP_ID,
+            auto_offset_reset="latest",
+            enable_auto_commit=True,
+            value_deserializer=lambda v: json.loads(v.decode("utf-8"))
+        )
+        log.info(f"Consuming topics {TOPICS} as group '{GROUP_ID}'")
+    except Exception as e:
+        log.error(f"Failed to create KafkaConsumer: {e}")
+        sys.exit(1)
+
+    for msg in consumer:
+        log.info(f"Received message from topic '{msg.topic}', partition {msg.partition}, offset {msg.offset}")
+        rec = msg.value
+        if msg.topic == DVF_TOPIC:
+            success = handle_dvf(rec)
+            log.info(f"handle_dvf processed record: success={success}")
+        else:
+            success = handle_scraper(rec)
+            log.info(f"handle_scraper processed record: success={success}")
