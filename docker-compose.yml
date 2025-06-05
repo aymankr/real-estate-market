@@ -25,6 +25,8 @@ services:
         #    target: /dev/shm
         #    tmpfs:
         #      size: 134217728 # 128*2^20 bytes = 128Mb
+        ports:
+            - ${IMMO_VIZ_DB_POSTGRES_PORT}:5432
         environment:
             POSTGRES_USER: ${IMMO_VIZ_DB_POSTGRES_USER}
             POSTGRES_PASSWORD: ${IMMO_VIZ_DB_POSTGRES_PASSWORD}
