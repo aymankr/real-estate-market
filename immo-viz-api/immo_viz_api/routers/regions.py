@@ -17,12 +17,12 @@ router = APIRouter(prefix="/regions", tags=["Regions"])
 @router.post("/", response_model=RegionResponse, status_code=status.HTTP_201_CREATED)
 def create_region(payload: RegionCreate, db: Session = Depends(get_viz_db)):
     """Create a new region."""
-    logger.info("Creating a new region with insee_code: %s", payload.insee_code)
+    logger.info("Creating a new region with insee_code: %s", payload.region_insee_code)
     new_region = Region(**payload.dict())
     db.add(new_region)
     db.commit()
     db.refresh(new_region)
-    logger.info("Region created with insee_code: %d", new_region.insee_code)
+    logger.info("Region created with insee_code: %d", new_region.region_insee_code)
     return new_region
 
 
@@ -38,7 +38,7 @@ def get_regions(db: Session = Depends(get_viz_db), limit: int = 10, skip: int = 
 def get_region(region_code: int, db: Session = Depends(get_viz_db)):
     """Get a specific region by insee_code."""
     logger.info("Fetching region with insee_code: %d", region_code)
-    region = db.query(Region).filter(Region.insee_code == region_code).first()
+    region = db.query(Region).filter(Region.region_insee_code == region_code).first()
     if not region:
         logger.warning("Region with insee_code %d not found", region_code)
         raise HTTPException(
@@ -53,7 +53,7 @@ def update_region(
 ):
     """Update an region by insee_code."""
     logger.info("Updating region with insee_code: %d", region_code)
-    region = db.query(Region).filter(Region.insee_code == region_code).first()
+    region = db.query(Region).filter(Region.region_insee_code == region_code).first()
     if not region:
         logger.warning("Region with insee_code %d not found", region_code)
         raise HTTPException(
@@ -65,7 +65,7 @@ def update_region(
 
     db.commit()
     db.refresh(region)
-    logger.info("Region with insee_code %d updated successfully", region.insee_code)
+    logger.info("Region with insee_code %d updated successfully", region.region_insee_code)
     return region
 
 
@@ -73,7 +73,7 @@ def update_region(
 def delete_region(region_code: int, db: Session = Depends(get_viz_db)):
     """Delete an region by insee_code."""
     logger.info("Deleting region with insee_code: %d", region_code)
-    region = db.query(Region).filter(Region.insee_code == region_code).first()
+    region = db.query(Region).filter(Region.region_insee_code == region_code).first()
     if not region:
         logger.warning("Region with insee_code %d not found", region_code)
         raise HTTPException(
