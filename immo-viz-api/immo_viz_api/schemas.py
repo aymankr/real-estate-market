@@ -6,7 +6,7 @@ from immo_viz_api.models import BuildingType, EnergyConsumption, GES
 
 # --- Viz database CRUD schemas --- #
 class RegionCreate(BaseModel):
-    insee_code: str
+    region_insee_code: str
     name: str
     area: Optional[float] = None
     population: Optional[int] = None
@@ -19,7 +19,7 @@ class RegionResponse(RegionCreate):
 
 
 class DepartmentCreate(BaseModel):
-    insee_code: str
+    department_insee_code: str
     name: str
     area: Optional[float] = None
     population: Optional[int] = None
@@ -33,7 +33,7 @@ class DepartmentResponse(DepartmentCreate):
 
 
 class CityCreate(BaseModel):
-    insee_code: str
+    city_insee_code: str
     name: str
     zip_code: int
     latitude: Optional[float]
@@ -51,7 +51,7 @@ class CityResponse(CityCreate):
 class PropertyAdCreate(BaseModel):
     city_insee_code: str
     building_type: BuildingType
-    is_rental: bool
+    is_rental: int
     price: float
     area: float
     publication_date: datetime

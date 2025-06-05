@@ -19,12 +19,12 @@ router = APIRouter(prefix="/departments", tags=["Department"])
 )
 def create_department(payload: DepartmentCreate, db: Session = Depends(get_viz_db)):
     """Create a new department."""
-    logger.info("Creating a new department with insee_code: %s", payload.insee_code)
+    logger.info("Creating a new department with insee_code: %s", payload.department_insee_code)
     new_department = Department(**payload.dict())
     db.add(new_department)
     db.commit()
     db.refresh(new_department)
-    logger.info("Department created with insee_code: %d", new_department.insee_code)
+    logger.info("Department created with insee_code: %d", new_department.department_insee_code)
     return new_department
 
 
@@ -40,7 +40,7 @@ def get_departments(db: Session = Depends(get_viz_db), limit: int = 10, skip: in
 def get_department(department_insee_code: int, db: Session = Depends(get_viz_db)):
     """Get a specific department by insee_code."""
     logger.info("Fetching department with insee_code: %d", department_insee_code)
-    department = db.query(Department).filter(Department.insee_code == department_insee_code).first()
+    department = db.query(Department).filter(Department.department_insee_code == department_insee_code).first()
     if not department:
         logger.warning("Department with insee_code %d not found", department_insee_code)
         raise HTTPException(
@@ -55,7 +55,7 @@ def update_department(
 ):
     """Update an department by insee_code."""
     logger.info("Updating department with insee_code: %d", department_insee_code)
-    department = db.query(Department).filter(Department.insee_code == department_insee_code).first()
+    department = db.query(Department).filter(Department.department_insee_code == department_insee_code).first()
     if not department:
         logger.warning("Department with insee_code %d not found", department_insee_code)
         raise HTTPException(
@@ -67,7 +67,7 @@ def update_department(
 
     db.commit()
     db.refresh(department)
-    logger.info("Department with insee_code %d updated successfully", department.insee_code)
+    logger.info("Department with insee_code %d updated successfully", department.department_insee_code)
     return department
 
 
@@ -75,7 +75,7 @@ def update_department(
 def delete_department(department_insee_code: int, db: Session = Depends(get_viz_db)):
     """Delete an department by insee_code."""
     logger.info("Deleting department with insee_code: %d", department_insee_code)
-    department = db.query(Department).filter(Department.insee_code == department_insee_code).first()
+    department = db.query(Department).filter(Department.department_insee_code == department_insee_code).first()
     if not department:
         logger.warning("Department with insee_code %d not found", department_insee_code)
         raise HTTPException(

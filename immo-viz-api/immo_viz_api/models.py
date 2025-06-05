@@ -1,12 +1,12 @@
 from enum import Enum
-from sqlalchemy import Column, Integer, Float, String, Boolean, CHAR, DateTime
+from sqlalchemy import Column, Integer, Float, String, Boolean, DateTime
 from immo_viz_api.database import VizBase, MonitoringBase
 
 # --- Viz database models --- #
 class Region(VizBase):
     __tablename__ = "regions"
 
-    insee_code = Column(String, primary_key=True, nullable=False)
+    region_insee_code = Column(String, primary_key=True, nullable=False)
     name = Column(String, nullable=False)
     area = Column(Float, nullable=True)
     population = Column(Integer, nullable=True)
@@ -14,13 +14,13 @@ class Region(VizBase):
     capital_city_insee_code = Column(String, nullable=True)
 
     def __repr__(self) -> str:
-        return f"<Region(insee_code={self.insee_code}, name={self.name}, area={self.area}, population={self.population}) capital_city_insee_code={self.capital_city_insee_code})>"
+        return f"<Region(insee_code={self.region_insee_code}, name={self.name}, area={self.area}, population={self.population}) capital_city_insee_code={self.capital_city_insee_code})>"
 
 
 class Department(VizBase):
     __tablename__ = "departments"
 
-    insee_code = Column(String, primary_key=True, nullable=False)
+    department_insee_code = Column(String, primary_key=True, nullable=False)
     name = Column(String, nullable=False)
     area = Column(Float, nullable=True)
     population = Column(Integer, nullable=True)
@@ -29,13 +29,13 @@ class Department(VizBase):
     capital_city_insee_code = Column(String, nullable=True)
 
     def __repr__(self) -> str:
-        return f"<Department(insee_code={self.insee_code}, name={self.name}, region_insee_code={self.region_insee_code}, capital_city_insee_code={self.capital_city_insee_code})>"
+        return f"<Department(insee_code={self.department_insee_code}, name={self.name}, region_insee_code={self.region_insee_code}, capital_city_insee_code={self.capital_city_insee_code})>"
 
 
 class City(VizBase):
     __tablename__ = "cities"
 
-    insee_code = Column(String, primary_key=True, nullable=False)
+    city_insee_code = Column(String, primary_key=True, nullable=False)
     name = Column(String, nullable=False)
     zip_code = Column(Integer, nullable=False)
     latitude = Column(Float, nullable=True)
@@ -46,7 +46,7 @@ class City(VizBase):
     department_insee_code = Column(String, nullable=False)
 
     def __repr__(self) -> str:
-        return f"<City(insee_code={self.insee_code}, name={self.name}, zip_code={self.zip_code} latitude={self.latitude}, longitude={self.longitude}, area={self.area}, population={self.population}, department_insee_code={self.department_insee_code})>"
+        return f"<City(insee_code={self.city_insee_code}, name={self.name}, zip_code={self.zip_code} latitude={self.latitude}, longitude={self.longitude}, area={self.area}, population={self.population}, department_insee_code={self.department_insee_code})>"
 
 
 class BuildingType(int, Enum):
@@ -61,24 +61,24 @@ class BuildingType(int, Enum):
     OTHER = 9
 
 
-class EnergyConsumption(str, Enum):
-    A = "A"
-    B = "B"
-    C = "C"
-    D = "D"
-    E = "E"
-    F = "F"
-    G = "G"
+class EnergyConsumption(int, Enum):
+    A = 0
+    B = 1
+    C = 2
+    D = 3
+    E = 4
+    F = 5
+    G = 6
 
 
-class GES(str, Enum):
-    A = "A"
-    B = "B"
-    C = "C"
-    D = "D"
-    E = "E"
-    F = "F"
-    G = "G"
+class GES(int, Enum):
+    A = 0
+    B = 1
+    C = 2
+    D = 3
+    E = 4
+    F = 5
+    G = 6
 
 
 class PropertyAd(VizBase):
@@ -87,15 +87,15 @@ class PropertyAd(VizBase):
     id = Column(Integer, primary_key=True, nullable=False)
     city_insee_code = Column(String, nullable=False)
     building_type = Column(Integer, nullable=False)
-    is_rental = Column(Boolean, nullable=False)
+    is_rental = Column(Integer, nullable=False)
     price = Column(Float, nullable=False)
     area = Column(Float, nullable=False)
     publication_date = Column(DateTime, nullable=False)
     rooms_count = Column(Integer, nullable=True)
     longitude = Column(Float, nullable=True)
     latitude = Column(Float, nullable=True)
-    energy_consumption = Column(CHAR, nullable=True)
-    ges = Column(CHAR, nullable=True)
+    energy_consumption = Column(Integer, nullable=True)
+    ges = Column(Integer, nullable=True)
     inserted_at = Column(DateTime, nullable=False)
 
 
