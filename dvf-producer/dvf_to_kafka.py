@@ -190,7 +190,7 @@ def main():
         depts = get_departments()
         logger.info(f"{len(depts)} departments to be treated")
         for d in depts:
-            cd = d.insee_code.zfill(2)
+            cd = d.department_insee_code.zfill(2)
             try:
                 communes = fetch_communes(cd, http_sess)
             except Exception as e:
