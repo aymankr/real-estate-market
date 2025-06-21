@@ -149,19 +149,18 @@ services:
             context: ./property-ads-analyzer
             dockerfile: Dockerfile
         environment:
-            IMMO_VIZ_API_URL:        ${IMMO_VIZ_API_URL}
-            KAFKA_HOST:              ${KAFKA_HOST}
-            KAFKA_ANALYZER_TOPICS:   ${KAFKA_ANALYZER_TOPICS}
-            KAFKA_CONSUMER_GROUP:    ${KAFKA_CONSUMER_GROUP}
-            LOG_LEVEL:               ${LOG_LEVEL}
-            SPARK_LOG_LEVEL:         ${SPARK_LOG_LEVEL}
+            IMMO_VIZ_API_URL: ${IMMO_VIZ_API_URL}
+            KAFKA_HOST: ${KAFKA_HOST}
+            KAFKA_ANALYZER_TOPICS: ${KAFKA_ANALYZER_TOPICS}
+            DVF_KAFKA_TOPIC: ${DVF_KAFKA_TOPIC}
+            LOG_LEVEL: ${LOG_LEVEL}
         depends_on:
             - kafka
             - immo-viz-api
             - spark-master
-        restart: on-failure
         networks:
             - app-tier
+        restart: on-failure
 
     immo-viz-api:
         build:
@@ -197,20 +196,20 @@ services:
         networks:
             - app-tier
 
-    # grafana:
-    #     image: grafana/grafana-enterprise
-    #     container_name: grafana
-    #     restart: unless-stopped
-    #     user: 1000:1000
-    #     environment:
-    #         - GF_SERVER_ROOT_URL=http://grafana.immoviz.com/
-    #         - GF_INSTALL_PLUGINS=grafana-clock-panel
-    #     ports:
-    #         - '3000:3000'
-    #     volumes:
-    #         - .grafana_storage:/var/lib/grafana
-    #     networks:
-    #         - app-tier
+    grafana:
+        image: grafana/grafana-enterprise
+        container_name: grafana
+        restart: unless-stopped
+        user: 1000:1000
+        environment:
+            - GF_SERVER_ROOT_URL=http://grafana.immoviz.com/
+            - GF_INSTALL_PLUGINS=grafana-clock-panel
+        ports:
+            - '3000:3000'
+        volumes:
+            - .grafana_storage:/var/lib/grafana
+        networks:
+            - app-tier
 
     dvf-producer:
         build:
