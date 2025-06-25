@@ -15,14 +15,14 @@ from pyspark.sql import SparkSession
 
 from models import BuildingType, EnergyConsumption
 
-KAFKA_BOOTSTRAP       = os.getenv("KAFKA_HOST", "kafka:9092")
-TOPICS               = os.getenv("KAFKA_ANALYZER_TOPICS", "dvf-property-ads,property-ads").split(",")
-DVF_TOPIC            = os.getenv("DVF_KAFKA_TOPIC", "dvf-property-ads")
-API_URL              = os.getenv("IMMO_VIZ_API_URL", "http://immo-viz-api:8000").rstrip("/")
-SCRAPER_PARTITIONS   = int(os.getenv("SCRAPER_KAFKA_PARTITIONS", "1"))
-SCRAPER_RF           = int(os.getenv("SCRAPER_KAFKA_RF", "1"))
-LOG_LEVEL            = os.getenv("LOG_LEVEL", "INFO")
-CHECKPOINT_LOCATION  = os.getenv("CHECKPOINT_LOCATION", "/tmp/checkpoint_property_ads")
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_HOST", "kafka:9092")
+TOPICS = os.getenv("KAFKA_ANALYZER_TOPICS", "dvf-property-ads,property-ads").split(",")
+DVF_TOPIC = os.getenv("DVF_KAFKA_TOPIC", "dvf-property-ads")
+API_URL = os.getenv("IMMO_VIZ_API_URL", "http://immo-viz-api:8000").rstrip("/")
+SCRAPER_PARTITIONS = int(os.getenv("SCRAPER_KAFKA_PARTITIONS", "1"))
+SCRAPER_RF = int(os.getenv("SCRAPER_KAFKA_RF", "1"))
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+CHECKPOINT_LOCATION = os.getenv("CHECKPOINT_LOCATION", "/tmp/checkpoint_property_ads")
 
 logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("analyzer")
@@ -154,24 +154,56 @@ def ensure_topics(partitions=SCRAPER_PARTITIONS, rf=SCRAPER_RF):
             pass
     admin.close()
 
-
 def process_batch(df, epoch_id):
+    batch_start = datetime.now(timezone.utc)
+
     rows = df.collect()
+    total_count   = len(rows)
+    success_count = 0
+    failure_count = 0
+    reasons       = set()
+
     for row in rows:
         log.debug(f"batch {epoch_id} ▶ {row.topic}@{row.partition}:{row.offset}")
         try:
             rec = json.loads(row.value)
-        except Exception as e:
-            log.error(f"Invalid JSON, skip: {e}")
+        except Exception:
+            failure_count += 1
+            reasons.add("invalid_json")
             continue
 
         if row.topic == DVF_TOPIC:
             ok = handle_dvf(rec)
-            log.info(f"DVF processed → success={ok}")
         else:
             ok = handle_scraper(rec)
-            log.info(f"Scraper processed → success={ok}")
 
+        if ok:
+            success_count += 1
+        else:
+            failure_count += 1
+            # failure  due to missing fields or filter conditions
+            if row.topic != DVF_TOPIC and (rec.get("energy_consumption") is None or rec.get("ges") is None):
+                reasons.add("missing_fields")
+            else:
+                reasons.add("filter_conditions")
+
+    batch_end = datetime.now(timezone.utc)
+    duration = (batch_end - batch_start).total_seconds()
+    accepted = success_count > 0
+    discard_reason = None if accepted else ",".join(sorted(reasons)) or "no_records"
+
+    # ssend analysis report per micro batch
+    report = {
+        "success": True,
+        "started_at": batch_start.isoformat(),
+        "ended_at": batch_end.isoformat(),
+        "duration_in_seconds": duration,
+        "accepted": accepted,
+        "discard_reason": discard_reason
+    }
+    post_to_api("analysis_reports", report)
+    log.info(f"Analysis report sent for batch {epoch_id}: "
+             f"{success_count}/{total_count} accepted, reasons={discard_reason}")
 
 if __name__ == "__main__":
     if not wait_for_kafka():
