@@ -18,3 +18,12 @@ node_modules/
 kafka_*
 # But keep the report script
 !kafka_report.py
+# Real scraper implementations (kept private)
+immoscraper/immoscraper/spiders/*_real.py
+immoscraper/immoscraper/spiders/bienici_spider_real.py
+immoscraper/immoscraper/spiders/entreparticuliers_spider_real.py  
+immoscraper/immoscraper/spiders/logicimmo_spider_real.py
+immoscraper/immoscraper/spiders/pap_spider_real.py
+
+# Keep only placeholder versions public
+!immoscraper/immoscraper/spiders/*_template.py
